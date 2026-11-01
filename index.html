@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creator Runner</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #202020;
+    font-family: monospace;
+    overflow: hidden;
+    user-select: none;
+}
+
+button {
+    font-family: monospace;
+    font-weight: bold;
+    padding: 9px 12px;
+    margin: 5px;
+    border: 3px solid #111;
+    background: white;
+    cursor: pointer;
+    box-shadow: 3px 3px #111;
+}
+
+button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px #111;
+}
+
+#game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(#bfe8ff 0%, #eaf8ff 75%, #d4e9f4 100%);
+}
+
+#game.night {
+    background: linear-gradient(#17233b 0%, #293954 75%, #3b4655 100%);
+}
+
+/* WORLDS */
+
+#game.world-desert {
+    background: linear-gradient(#f7d39a, #f3b96f 72%, #e8a85d);
+}
+
+#game.world-desert.night {
+    background: linear-gradient(#34243e, #57405a 72%, #30243a);
+}
+
+#game.world-forest {
+    background: linear-gradient(#b9e9b0, #d9efb4 70%, #a5d58a);
+}
+
+#game.world-forest.night {
+    background: linear-gradient(#183b3a, #234c49 70%, #142d2d);
+}
+
+#game.world-snow {
+    background: linear-gradient(#e7f8ff, #c6edff 70%, #a5d9f2);
+}
+
+#game.world-snow.night {
+    background: linear-gradient(#263b58, #364e70 70%, #1b2b43);
+}
+
+#game.world-space {
+    background:
+        radial-gradient(circle at 78% 18%, white 0 2px, transparent 3px),
+        radial-gradient(circle at 23% 27%, white 0 1px, transparent 2px),
+        radial-gradient(circle at 57% 38%, white 0 2px, transparent 3px),
+        linear-gradient(#68449a, #35245f 78%, #24183f);
+}
+
+#game.world-space.night {
+    background:
+        radial-gradient(circle at 78% 18%, white 0 2px, transparent 3px),
+        radial-gradient(circle at 23% 27%, white 0 1px, transparent 2px),
+        linear-gradient(#17102f, #100c24 78%, #080619);
+}
+
+/* HUD */
+
+#hud {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    z-index: 20;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    color: #111;
+    font-size: 15px;
+    font-weight: bold;
+    text-shadow: 2px 2px white;
+    pointer-events: none;
+}
+
+#leftHud, #rightHud {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.night #hud {
+    color: white;
+    text-shadow: 2px 2px black;
+}
+
+/* TOP BUTTONS */
+
+#shopButton {
+    position: absolute;
+    left: 10px;
+    top: 48px;
+    z-index: 35;
+}
+
+#missionsButton {
+    position: absolute;
+    right: 10px;
+    top: 48px;
+    z-index: 35;
+}
+
+#pauseButton {
+    position: absolute;
+    right: 10px;
+    top: 95px;
+    z-index: 35;
+}
+
+#worldButton {
+    position: absolute;
+    left: 10px;
+    top: 100px;
+    z-index: 35;
+    font-size: 12px;
+}
+
+#achievementsButton {
+    position: absolute;
+    left: 10px;
+    top: 148px;
+    z-index: 35;
+    font-size: 12px;
+}
+
+/* PANELS */
+
+.panel {
+    position: absolute;
+    z-index: 50;
+    display: none;
+    background: rgba(20, 20, 20, 0.97);
+    color: white;
+    border: 4px solid #111;
+    box-shadow: 4px 4px #0007;
+    padding: 12px;
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+.panel.open {
+    display: block;
+}
+
+.panel h2 {
+    text-align: center;
+    margin: 5px 0 12px;
+    font-size: 17px;
+}
+
+#shop {
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 235px;
+    max-height: 100vh;
+    z-index: 60;
+    transform: translateX(-105%);
+    transition: transform .25s ease;
+}
+
+#shop.open {
+    display: block;
+    transform: translateX(0);
+}
+
+#shopCoins {
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.shopItem {
+    border: 3px solid white;
+    background: #333;
+    text-align: center;
+    padding: 8px;
+    margin-bottom: 12px;
+}
+
+.shopPreview {
+    width: 55px;
+    height: 70px;
+    margin: 10px auto;
+    position: relative;
+}
+
+#missionsPanel {
+    top: 92px;
+    right: 10px;
+    width: 260px;
+}
+
+#worldPanel {
+    top: 145px;
+    left: 10px;
+    width: 220px;
+}
+
+#achievementsPanel {
+    top: 195px;
+    left: 10px;
+    width: 255px;
+}
+
+.missionItem, .achievementItem {
+    background: #333;
+    border: 2px solid #777;
+    padding: 9px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.missionItem.completed, .achievementItem.unlocked {
+    border-color: #ffe66d;
+}
+
+.missionProgress, .achievementDescription {
+    color: #ddd;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.missionReward, .achievementStatus {
+    color: #ffe66d;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.worldChoice {
+    display: block;
+    width: 100%;
+    margin: 6px 0;
+}
+
+.worldChoice.selected {
+    background: #ffe66d;
+}
+
+.panelClose {
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* GROUND */
+
+#ground {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 90px;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0,
+            transparent 30px,
+            #555 31px,
+            #555 34px
+        ),
+        #dedede;
+    border-top: 5px solid #222;
+    z-index: 2;
+}
+
+.night #ground {
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0,
+            transparent 30px,
+            #333 31px,
+            #333 34px
+        ),
+        #777;
+    border-color: white;
+}
+
+#game.world-desert #ground {
+    background: repeating-linear-gradient(90deg, transparent 0, transparent 30px, #b9823e 31px, #b9823e 34px), #e5bd70;
+    border-color: #6d482b;
+}
+
+#game.world-forest #ground {
+    background: repeating-linear-gradient(90deg, transparent 0, transparent 30px, #4d8b47 31px, #4d8b47 34px), #79b95f;
+    border-color: #244d28;
+}
+
+#game.world-snow #ground {
+    background: repeating-linear-gradient(90deg, transparent 0, transparent 30px, #a6cfe2 31px, #a6cfe2 34px), #f3fbff;
+    border-color: #527d96;
+}
+
+#game.world-space #ground {
+    background: repeating-linear-gradient(90deg, transparent 0, transparent 30px, #4b3c70 31px, #4b3c70 34px), #625080;
+    border-color: #1d1637;
+}
+
+#game.world-desert.night #ground { background-color: #8b6a52; }
+#game.world-forest.night #ground { background-color: #315e4d; }
+#game.world-snow.night #ground { background-color: #9eb4c9; }
+#game.world-space.night #ground { background-color: #382d55; }
+
+/* PLAYER */
+
+#player {
+    position: absolute;
+    width: 55px;
+    height: 70px;
+    left: 120px;
+    bottom: 90px;
+    z-index: 10;
+}
+
+.head {
+    position: absolute;
+    width: 38px;
+    height: 38px;
+    left: 9px;
+    top: 0;
+    background: #f3b37c;
+    border: 4px solid #111;
+    border-radius: 8px;
+}
+
+.hair {
+    position: absolute;
+    left: 7px;
+    top: -4px;
+    width: 40px;
+    height: 14px;
+    background: #111;
+    border-radius: 8px 8px 2px 2px;
+}
+
+.eye {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: #111;
+    top: 17px;
+}
+
+.eye.left { left: 9px; }
+.eye.right { right: 9px; }
+
+.mouth {
+    position: absolute;
+    width: 15px;
+    height: 5px;
+    background: #111;
+    left: 8px;
+    bottom: 7px;
+}
+
+.shirt {
+    position: absolute;
+    width: 48px;
+    height: 30px;
+    left: 3px;
+    top: 36px;
+    background: #2478e5;
+    border: 4px solid #111;
+}
+
+.arm {
+    position: absolute;
+    width: 13px;
+    height: 27px;
+    background: #2478e5;
+    border: 4px solid #111;
+    top: 38px;
+}
+
+.arm.left {
+    left: -6px;
+    transform: rotate(20deg);
+}
+
+.arm.right {
+    right: -6px;
+    transform: rotate(-20deg);
+}
+
+.leg {
+    position: absolute;
+    width: 13px;
+    height: 20px;
+    background: #222;
+    border: 3px solid #111;
+    top: 62px;
+}
+
+.leg.left { left: 13px; }
+.leg.right { right: 13px; }
+
+/* SKINS */
+
+#player.red .shirt, #player.red .arm,
+.red .shirt, .red .arm { background: #e53935; }
+
+#player.green .shirt, #player.green .arm,
+.green .shirt, .green .arm { background: #2eaa52; }
+
+#player.purple .shirt, #player.purple .arm,
+.purple .shirt, .purple .arm { background: #8e44ad; }
+
+#player.gold .shirt, #player.gold .arm,
+.gold .shirt, .gold .arm { background: #f5b700; }
+
+#player.cyan .shirt, #player.cyan .arm,
+.cyan .shirt, .cyan .arm { background: #00bcd4; }
+
+#player.orange .shirt, #player.orange .arm,
+.orange .shirt, .orange .arm { background: #ff8c24; }
+
+#player.pink .shirt, #player.pink .arm,
+.pink .shirt, .pink .arm { background: #f062b5; }
+
+#player.black .shirt, #player.black .arm,
+.black .shirt, .black .arm { background: #454b58; }
+
+/* DUCKING */
+
+#player.duck {
+    height: 35px;
+}
+
+#player.duck .head {
+    top: -2px;
+    transform: scale(.72);
+    transform-origin: top left;
+}
+
+#player.duck .shirt {
+    top: 13px;
+    height: 18px;
+}
+
+#player.duck .arm {
+    top: 14px;
+    height: 16px;
+}
+
+#player.duck .leg {
+    top: 27px;
+    height: 8px;
+}
+
+/* SHIELD */
+
+#player.shield {
+    filter: drop-shadow(0 0 12px cyan);
+}
+
+#player.shield::after {
+    content: "";
+    position: absolute;
+    width: 75px;
+    height: 90px;
+    left: -10px;
+    top: -10px;
+    border: 4px solid cyan;
+    border-radius: 50%;
+    opacity: .8;
+}
+
+/* OBSTACLES */
+
+.obstacle {
+    position: absolute;
+    bottom: 90px;
+    z-index: 8;
+}
+
+.cactus {
+    width: 35px;
+    height: 65px;
+    background: #248b3c;
+    border: 5px solid #111;
+    border-radius: 8px;
+}
+
+.cactus::before, .cactus::after {
+    content: "";
+    position: absolute;
+    background: #248b3c;
+    border: 5px solid #111;
+    width: 18px;
+    height: 28px;
+    top: 22px;
+}
+
+.cactus::before {
+    left: -23px;
+    border-right: 0;
+    border-radius: 10px 0 0 10px;
+}
+
+.cactus::after {
+    right: -23px;
+    border-left: 0;
+    border-radius: 0 10px 10px 0;
+}
+
+.rock {
+    width: 55px;
+    height: 40px;
+    background: #777;
+    border: 5px solid #111;
+    border-radius: 15px 15px 5px 5px;
+}
+
+.spikes {
+    width: 58px;
+    height: 30px;
+    background: #e94b3c;
+    border: 4px solid #111;
+    clip-path: polygon(0 100%, 15% 10%, 30% 100%, 48% 0, 66% 100%, 82% 15%, 100% 100%);
+}
+
+.bird {
+    width: 56px;
+    height: 24px;
+    bottom: 135px;
+    background: #ffb52e;
+    border: 4px solid #111;
+    border-radius: 14px 18px 10px 10px;
+}
+
+.bird::before, .bird::after {
+    content: "";
+    position: absolute;
+    width: 22px;
+    height: 12px;
+    background: #f07828;
+    border: 3px solid #111;
+    top: -10px;
+}
+
+.bird::before {
+    left: 2px;
+    transform: rotate(-25deg);
+    border-radius: 12px 12px 2px 2px;
+}
+
+.bird::after {
+    right: -9px;
+    top: 4px;
+    width: 12px;
+    height: 8px;
+    background: #ffdf59;
+    border-radius: 2px 8px 8px 2px;
+}
+
+/* COINS */
+
+.coin {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    background: gold;
+    border: 4px solid #9b6500;
+    border-radius: 50%;
+    z-index: 7;
+    bottom: 180px;
+}
+
+.coin::after {
+    content: "$";
+    position: absolute;
+    left: 4px;
+    top: 0;
+    color: #9b6500;
+    font-weight: bold;
+}
+
+/* POWERUPS */
+
+.powerup {
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    bottom: 200px;
+    z-index: 7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 4px solid #111;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.shieldPower { background: cyan; }
+.speedPower { background: orange; }
+
+/* MENU */
+
+#menu {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, .45);
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+#menu h1 {
+    font-size: clamp(32px, 7vw, 70px);
+    margin-bottom: 15px;
+    text-shadow: 5px 5px #000;
+}
+
+#menu p {
+    margin: 8px;
+    font-size: 16px;
+}
+
+#jumpButton, #duckButton {
+    position: absolute;
+    bottom: 25px;
+    z-index: 25;
+    width: 90px;
+    height: 60px;
+    padding: 0;
+}
+
+#jumpButton { right: 25px; }
+#duckButton { right: 125px; }
+
+@media (min-width: 700px) {
+    #jumpButton, #duckButton {
+        display: none;
+    }
+}
+
+@media (max-width: 500px) {
+    #hud {
+        font-size: 12px;
+        top: 8px;
+        left: 8px;
+        right: 8px;
+    }
+
+    #leftHud, #rightHud {
+        gap: 7px;
+    }
+
+    #missionsPanel {
+        width: 235px;
+        right: 8px;
+    }
+
+    #missionsButton {
+        right: 8px;
+    }
+
+    #worldPanel {
+        width: 200px;
+    }
+
+    #achievementsPanel {
+        width: 225px;
+    }
+}
+</style>
+</head>
+
+<body>
+<div id="game">
+
+    <!-- SHOP -->
+    <aside id="shop" class="panel">
+        <h2>🛒 SHOP</h2>
+
+        <div id="shopCoins">🪙 <span id="shopCoinCount">0</span></div>
+
+        <div class="shopItem blue">
+            <div class="shopPreview">
+                <div class="head"><div class="hair"></div><div class="eye left"></div><div class="eye right"></div><div class="mouth"></div></div>
+                <div class="shirt"></div><div class="arm left"></div><div class="arm right"></div><div class="leg left"></div><div class="leg right"></div>
+            </div>
+            <strong>BLUE</strong><br>
+            <button onclick="buyCharacter('blue', 0)">FREE</button>
+        </div>
+
+        <div class="shopItem red">
+            <div class="shopPreview">
+                <div class="head"><div class="hair"></div><div class="eye left"></div><div class="eye right"></div><div class="mouth"></div></div>
+                <div class="shirt"></div><div class="arm left"></div><div class="arm right"></div><div class="leg left"></div><div class="leg right"></div>
+            </div>
+            <strong>RED</strong><br>
+            <button onclick="buyCharacter('red', 25)">🪙 25</button>
+        </div>
+
+        <div class="shopItem green">
+            <div class="shopPreview">
+                <div class="head"><div class="hair"></div><div class="eye left"></div><div class="eye right"></div><div class="mouth"></div></div>
+                <div class="shirt"></div><div class="arm left"></div><div class="arm right"></div><div class="leg left"></div><div class="leg right"></div>
+            </div>
+            <strong>GREEN</strong><br>
+            <button onclick="buyCharacter('green', 50)">🪙 50</button>
+        </div>
+
+        <div class="shopItem purple">
+            <div class="shopPreview">
+                <div class="head"><div class="hair"></div><div class="eye left"></div><div class="eye right"></div><div class="mouth"></div></div>
+                <div class="shirt"></div><div class="arm left"></div><div class="arm right"></div><div class="leg left"></div><div class="leg right"></div>
+            </div>
+            <strong>PURPLE</strong><br>
+            <button onclick="buyCharacter('purple', 100)">🪙 100</button>
+        </div>
+
+        <div class="shopItem gold">
+            <div class="shopPreview">
+                <div class="head"><div class="hair"></div><div class="eye left"></div><div class="eye right"></div><div class="mouth"></div></div>
+                <div class="shirt"></div><div class="arm left"></div><div class="arm right"></div><div class="leg left"></div><div class="leg right"></div>
+            </div>
+            <strong>GOLD</strong><br>
+            <button onclick="buyCharacter('gold', 200)">🪙 200</button>
+        </div>
+
+        <div class="shopItem cyan">
+            <div class="shopPreview">
+                <div class="head"><div class="hair"></div><div class="eye left"></div><div class="eye right"></div><div class="mouth"></div></div>
+                <div class="shirt"></div><div class="arm left"></div><div class="arm right"></div><div class="leg left"></div><div class="leg right"></div>
+            </div>
+            <strong>CYAN</strong><br>
+            <button onclick="buyCharacter('cyan', 75)">🪙 75</button>
+        </div>
+
+        <div class="shopItem orange">
+            <div class="shopPreview">
+                <div class="head"><div class="hair"></div><div class="eye left"></div><div class="eye right"></div><div class="mouth"></div></div>
+                <div class="shirt"></div><div class="arm left"></div><div class="arm right"></div><div class="leg left"></div><div class="leg right"></div>
+            </div>
+            <strong>ORANGE</strong><br>
+            <button onclick="buyCharacter('orange', 125)">🪙 125</button>
+        </div>
+
+        <div class="shopItem pink">
+            <div class="shopPreview">
+                <div class="head"><div class="hair"></div><div class="eye left"></div><div class="eye right"></div><div class="mouth"></div></div>
+                <div class="shirt"></div><div class="arm left"></div><div class="arm right"></div><div class="leg left"></div><div class="leg right"></div>
+            </div>
+            <strong>PINK</strong><br>
+            <button onclick="buyCharacter('pink', 150)">🪙 150</button>
+        </div>
+
+        <div class="shopItem black">
+            <div class="shopPreview">
+                <div class="head"><div class="hair"></div><div class="eye left"></div><div class="eye right"></div><div class="mouth"></div></div>
+                <div class="shirt"></div><div class="arm left"></div><div class="arm right"></div><div class="leg left"></div><div class="leg right"></div>
+            </div>
+            <strong>BLACK</strong><br>
+            <button onclick="buyCharacter('black', 300)">🪙 300</button>
+        </div>
+
+        <button onclick="toggleShop()">CLOSE SHOP</button>
+    </aside>
+
+    <button id="shopButton">🛒 SHOP</button>
+    <button id="missionsButton">📋 MISSIONS</button>
+    <button id="pauseButton">PAUSE</button>
+    <button id="worldButton">🌍 WORLD: CLASSIC</button>
+    <button id="achievementsButton">🏅 ACHIEVEMENTS</button>
+
+    <!-- WORLDS -->
+    <aside id="worldPanel" class="panel">
+        <h2>🌍 CHOOSE WORLD</h2>
+        <button class="worldChoice selected" data-world="classic">🌤️ Classic</button>
+        <button class="worldChoice" data-world="desert">🏜️ Desert</button>
+        <button class="worldChoice" data-world="forest">🌲 Forest</button>
+        <button class="worldChoice" data-world="snow">❄️ Snow</button>
+        <button class="worldChoice" data-world="space">🚀 Space</button>
+        <p style="font-size:11px;text-align:center">Changes scenery only.</p>
+        <button class="panelClose" id="closeWorld">CLOSE</button>
+    </aside>
+
+    <!-- MISSIONS -->
+    <aside id="missionsPanel" class="panel">
+        <h2>📋 MISSIONS</h2>
+        <p style="font-size:11px;text-align:center;margin-bottom:10px">
+            Complete missions during a run to earn bonus coins!
+        </p>
+        <div id="missionsList"></div>
+        <button class="panelClose" id="closeMissions">CLOSE</button>
+    </aside>
+
+    <!-- ACHIEVEMENTS -->
+    <aside id="achievementsPanel" class="panel">
+        <h2>🏅 ACHIEVEMENTS</h2>
+        <p style="font-size:11px;text-align:center;margin-bottom:10px">
+            Unlock badges by playing. Progress is saved!
+        </p>
+        <div id="achievementsList"></div>
+        <button class="panelClose" id="closeAchievements">CLOSE</button>
+    </aside>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div id="leftHud">
+            <span>⭐ <span id="score">0</span></span>
+            <span>🪙 <span id="coins">0</span></span>
+            <span>❤️ <span id="lives">1</span></span>
+            <span>🏃 <span id="speedDisplay">300</span></span>
+        </div>
+        <div id="rightHud">
+            <span>🏆 <span id="highScore">0</span></span>
+        </div>
+    </div>
+
+    <!-- PLAYER -->
+    <div id="player">
+        <div class="head">
+            <div class="hair"></div>
+            <div class="eye left"></div>
+            <div class="eye right"></div>
+            <div class="mouth"></div>
+        </div>
+        <div class="shirt"></div>
+        <div class="arm left"></div>
+        <div class="arm right"></div>
+        <div class="leg left"></div>
+        <div class="leg right"></div>
+    </div>
+
+    <div id="ground"></div>
+
+    <button id="jumpButton">JUMP</button>
+    <button id="duckButton">DUCK</button>
+
+    <!-- MAIN MENU -->
+    <div id="menu">
+        <h1>CREATOR RUNNER</h1>
+        <p>Jump over obstacles and collect coins!</p>
+        <p>SPACE / ↑ = JUMP · ↓ / S = DUCK</p>
+        <p>P = PAUSE</p>
+        <button id="startButton">START GAME</button>
+    </div>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+const menu = document.getElementById("menu");
+
+const scoreText = document.getElementById("score");
+const coinText = document.getElementById("coins");
+const livesText = document.getElementById("lives");
+const highScoreText = document.getElementById("highScore");
+const speedDisplay = document.getElementById("speedDisplay");
+
+const shop = document.getElementById("shop");
+const shopCoinCount = document.getElementById("shopCoinCount");
+const shopButton = document.getElementById("shopButton");
+
+const missionsButton = document.getElementById("missionsButton");
+const missionsPanel = document.getElementById("missionsPanel");
+const missionsList = document.getElementById("missionsList");
+
+const achievementsButton = document.getElementById("achievementsButton");
+const achievementsPanel = document.getElementById("achievementsPanel");
+const achievementsList = document.getElementById("achievementsList");
+
+const worldButton = document.getElementById("worldButton");
+const worldPanel = document.getElementById("worldPanel");
+
+const startButton = document.getElementById("startButton");
+const pauseButton = document.getElementById("pauseButton");
+const jumpButton = document.getElementById("jumpButton");
+const duckButton = document.getElementById("duckButton");
+
+/* =========================================================
+   SAFE LOCAL STORAGE
+   ========================================================= */
+
+function loadNumber(key, fallback = 0) {
+    const value = Number(localStorage.getItem(key));
+    return Number.isFinite(value) ? value : fallback;
+}
+
+function loadArray(key, fallback = []) {
+    try {
+        const value = JSON.parse(localStorage.getItem(key) || "null");
+        return Array.isArray(value) ? value : fallback;
+    } catch {
+        return fallback;
+    }
+}
+
+/* =========================================================
+   GAME STATE
+   ========================================================= */
+
+let running = false;
+let paused = false;
+
+let score = 0;
+let coins = loadNumber("creatorCoins");
+let lives = 1;
+let highScore = loadNumber("creatorHighScore");
+
+let playerY = 0;
+let velocityY = 0;
+
+const gravity = 1800;
+const jumpPower = 620; // Preserved shorter jump
+
+let normalSpeed = 300;
+const startingSpeed = 300;
+const maximumSpeed = 600;
+const acceleration = 12;
+
+let speedBoost = false;
+let speedBoostTimer = 0;
+let shieldActive = false;
+
+let obstacleDistance = 600;
+const minimumGap = 500;
+const maximumGap = 700;
+
+let objects = [];
+let lastTime = 0;
+let scoreTimer = 0;
+let coinsCollectedThisRun = 0;
+
+let completedMissions = new Set();
+let currentCharacter = localStorage.getItem("currentCharacter") || "blue";
+let purchasedCharacters = loadArray("purchasedCharacters", ["blue"]);
+
+const validCharacters = [
+    "blue", "red", "green", "purple", "gold",
+    "cyan", "orange", "pink", "black"
+];
+
+if (!validCharacters.includes(currentCharacter)) {
+    currentCharacter = "blue";
+}
+
+if (!purchasedCharacters.includes("blue")) {
+    purchasedCharacters.push("blue");
+}
+
+/* =========================================================
+   WORLD SELECTOR
+   ========================================================= */
+
+const worldNames = {
+    classic: "Classic",
+    desert: "Desert",
+    forest: "Forest",
+    snow: "Snow",
+    space: "Space"
+};
+
+let currentWorld = localStorage.getItem("creatorWorld") || "classic";
+
+if (!worldNames[currentWorld]) {
+    currentWorld = "classic";
+}
+
+function applyWorld() {
+    game.classList.remove(
+        "world-desert",
+        "world-forest",
+        "world-snow",
+        "world-space"
+    );
+
+    if (currentWorld !== "classic") {
+        game.classList.add("world-" + currentWorld);
+    }
+
+    worldButton.textContent =
+        "🌍 WORLD: " + worldNames[currentWorld].toUpperCase();
+
+    document.querySelectorAll(".worldChoice").forEach(button => {
+        const selected = button.dataset.world === currentWorld;
+        button.classList.toggle("selected", selected);
+        button.setAttribute("aria-pressed", String(selected));
+    });
+
+    localStorage.setItem("creatorWorld", currentWorld);
+}
+
+worldButton.addEventListener("click", () => {
+    worldPanel.classList.toggle("open");
+});
+
+document.querySelectorAll(".worldChoice").forEach(button => {
+    button.addEventListener("click", () => {
+        currentWorld = button.dataset.world;
+        applyWorld();
+        worldPanel.classList.remove("open");
+    });
+});
+
+document.getElementById("closeWorld").addEventListener("click", () => {
+    worldPanel.classList.remove("open");
+});
+
+/* =========================================================
+   MISSIONS AND REWARDS
+   ========================================================= */
+
+const missionDefinitions = [
+    {
+        id: "score100",
+        title: "Reach 100 score",
+        goal: 100,
+        reward: 10,
+        type: "score"
+    },
+    {
+        id: "coins5",
+        title: "Collect 5 coins",
+        goal: 5,
+        reward: 15,
+        type: "coins"
+    },
+    {
+        id: "score300",
+        title: "Reach 300 score",
+        goal: 300,
+        reward: 25,
+        type: "score"
+    }
+];
+
+function getMissionProgress(mission) {
+    return mission.type === "coins"
+        ? coinsCollectedThisRun
+        : score;
+}
+
+function renderMissions() {
+    missionsList.innerHTML = missionDefinitions.map(mission => {
+        const progress = Math.min(
+            getMissionProgress(mission),
+            mission.goal
+        );
+
+        const completed = completedMissions.has(mission.id);
+
+        return `
+            <div class="missionItem ${completed ? "completed" : ""}">
+                <strong>${completed ? "✅" : "🎯"} ${mission.title}</strong>
+                <div class="missionProgress">
+                    Progress: ${progress} / ${mission.goal}
+                </div>
+                <div class="missionReward">
+                    Reward: 🪙 ${mission.reward}
+                    ${completed ? " — EARNED!" : ""}
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function updateMissions() {
+    missionDefinitions.forEach(mission => {
+        if (
+            !completedMissions.has(mission.id) &&
+            getMissionProgress(mission) >= mission.goal
+        ) {
+            completedMissions.add(mission.id);
+
+            coins += mission.reward;
+            coinText.textContent = coins;
+            shopCoinCount.textContent = coins;
+
+            localStorage.setItem("creatorCoins", coins);
+        }
+    });
+
+    renderMissions();
+    updateAchievements();
+}
+
+missionsButton.addEventListener("click", () => {
+    missionsPanel.classList.toggle("open");
+});
+
+document.getElementById("closeMissions").addEventListener("click", () => {
+    missionsPanel.classList.remove("open");
+});
+
+/* =========================================================
+   ACHIEVEMENTS
+   ========================================================= */
+
+const achievementDefinitions = [
+    {
+        id: "firstRun",
+        title: "First Steps",
+        description: "Start your first run.",
+        test: () => runsPlayed >= 1
+    },
+    {
+        id: "score100",
+        title: "Rookie Runner",
+        description: "Reach a score of 100.",
+        test: () => bestScoreEver >= 100
+    },
+    {
+        id: "score500",
+        title: "Speed Star",
+        description: "Reach a score of 500.",
+        test: () => bestScoreEver >= 500
+    },
+    {
+        id: "score1000",
+        title: "Legendary Runner",
+        description: "Reach a score of 1,000.",
+        test: () => bestScoreEver >= 1000
+    },
+    {
+        id: "coins10",
+        title: "Coin Collector",
+        description: "Collect 10 coins in one run.",
+        test: () => mostCoinsInRun >= 10
+    },
+    {
+        id: "missionMaster",
+        title: "Mission Master",
+        description: "Complete all 3 missions in one run.",
+        test: () => missionsMasterAchieved
+    }
+];
+
+let unlockedAchievements = new Set(
+    loadArray("creatorAchievements", [])
+);
+
+let runsPlayed = loadNumber("creatorRunsPlayed");
+let bestScoreEver = loadNumber("creatorBestScore");
+let mostCoinsInRun = loadNumber("creatorMostCoinsInRun");
+let missionsMasterAchieved =
+    localStorage.getItem("creatorMissionMaster") === "true";
+
+function renderAchievements() {
+    achievementsList.innerHTML = achievementDefinitions.map(achievement => {
+        const unlocked = unlockedAchievements.has(achievement.id);
+
+        return `
+            <div class="achievementItem ${unlocked ? "unlocked" : ""}">
+                <strong>${unlocked ? "🏅" : "🔒"} ${achievement.title}</strong>
+                <div class="achievementDescription">
+                    ${achievement.description}
+                </div>
+                <div class="achievementStatus">
+                    ${unlocked ? "UNLOCKED!" : "Not unlocked yet"}
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function updateAchievements() {
+    if (score > bestScoreEver) {
+        bestScoreEver = score;
+        localStorage.setItem("creatorBestScore", bestScoreEver);
+    }
+
+    if (coinsCollectedThisRun > mostCoinsInRun) {
+        mostCoinsInRun = coinsCollectedThisRun;
+        localStorage.setItem("creatorMostCoinsInRun", mostCoinsInRun);
+    }
+
+    if (completedMissions.size === missionDefinitions.length) {
+        missionsMasterAchieved = true;
+        localStorage.setItem("creatorMissionMaster", "true");
+    }
+
+    let changed = false;
+
+    achievementDefinitions.forEach(achievement => {
+        if (
+            !unlockedAchievements.has(achievement.id) &&
+            achievement.test()
+        ) {
+            unlockedAchievements.add(achievement.id);
+            changed = true;
+        }
+    });
+
+    if (changed) {
+        localStorage.setItem(
+            "creatorAchievements",
+            JSON.stringify([...unlockedAchievements])
+        );
+    }
+
+    renderAchievements();
+}
+
+achievementsButton.addEventListener("click", () => {
+    achievementsPanel.classList.toggle("open");
+});
+
+document.getElementById("closeAchievements").addEventListener("click", () => {
+    achievementsPanel.classList.remove("open");
+});
+
+/* =========================================================
+   CHARACTER SHOP
+   ========================================================= */
+
+function applyCharacter() {
+    player.classList.remove(...validCharacters);
+    player.classList.add(currentCharacter);
+}
+
+function buyCharacter(character, price) {
+    if (!validCharacters.includes(character)) return;
+
+    if (purchasedCharacters.includes(character)) {
+        currentCharacter = character;
+        localStorage.setItem("currentCharacter", character);
+        applyCharacter();
+        return;
+    }
+
+    if (coins < price) {
+        alert("You need " + price + " coins!");
+        return;
+    }
+
+    coins -= price;
+    purchasedCharacters.push(character);
+    currentCharacter = character;
+
+    localStorage.setItem("creatorCoins", coins);
+    localStorage.setItem(
+        "purchasedCharacters",
+        JSON.stringify(purchasedCharacters)
+    );
+    localStorage.setItem("currentCharacter", currentCharacter);
+
+    coinText.textContent = coins;
+    shopCoinCount.textContent = coins;
+
+    applyCharacter();
+}
+
+function toggleShop() {
+    shop.classList.toggle("open");
+}
+
+shopButton.addEventListener("click", toggleShop);
+
+/* =========================================================
+   INITIAL UI
+   ========================================================= */
+
+function updateCoinUI() {
+    coinText.textContent = coins;
+    shopCoinCount.textContent = coins;
+}
+
+highScoreText.textContent = highScore;
+livesText.textContent = lives;
+speedDisplay.textContent = normalSpeed;
+
+updateCoinUI();
+applyCharacter();
+applyWorld();
+renderMissions();
+updateAchievements();
+
+/* =========================================================
+   START GAME
+   ========================================================= */
+
+function startGame() {
+    score = 0;
+    coinsCollectedThisRun = 0;
+    completedMissions = new Set();
+
+    runsPlayed++;
+    localStorage.setItem("creatorRunsPlayed", runsPlayed);
+
+    lives = 1;
+    normalSpeed = startingSpeed;
+
+    playerY = 0;
+    velocityY = 0;
+    player.style.transform = "translateY(0px)";
+    player.classList.remove("duck", "shield");
+
+    shieldActive = false;
+    speedBoost = false;
+    speedBoostTimer = 0;
+
+    objects.forEach(object => object.remove());
+    objects = [];
+
+    obstacleDistance = 600;
+    scoreTimer = 0;
+
+    scoreText.textContent = score;
+    livesText.textContent = lives;
+    speedDisplay.textContent = normalSpeed;
+
+    menu.style.display = "none";
+
+    shop.classList.remove("open");
+    missionsPanel.classList.remove("open");
+    achievementsPanel.classList.remove("open");
+    worldPanel.classList.remove("open");
+
+    running = true;
+    paused = false;
+    pauseButton.textContent = "PAUSE";
+
+    renderMissions();
+    updateAchievements();
+
+    lastTime = performance.now();
+
+    createObstacle(window.innerWidth + 250);
+
+    requestAnimationFrame(gameLoop);
+}
+
+startButton.addEventListener("click", startGame);
+
+/* =========================================================
+   JUMPING
+   ========================================================= */
+
+function jump() {
+    if (!running || paused) return;
+
+    if (playerY <= 1) {
+        player.classList.remove("duck");
+        velocityY = jumpPower;
+    }
+}
+
+/* =========================================================
+   DUCKING
+   ========================================================= */
+
+function startDucking() {
+    if (running && !paused && playerY <= 1) {
+        player.classList.add("duck");
+    }
+}
+
+function stopDucking() {
+    player.classList.remove("duck");
+}
+
+document.addEventListener("keydown", event => {
+    if (
+        event.code === "Space" ||
+        event.code === "ArrowUp"
+    ) {
+        event.preventDefault();
+
+        if (!event.repeat) {
+            jump();
+        }
+    }
+
+    if (
+        event.code === "ArrowDown" ||
+        event.key.toLowerCase() === "s"
+    ) {
+        event.preventDefault();
+        startDucking();
+    }
+
+    if (event.key.toLowerCase() === "p") {
+        togglePause();
+    }
+});
+
+document.addEventListener("keyup", event => {
+    if (
+        event.code === "ArrowDown" ||
+        event.key.toLowerCase() === "s"
+    ) {
+        stopDucking();
+    }
+});
+
+window.addEventListener("blur", stopDucking);
+
+jumpButton.addEventListener("click", jump);
+
+duckButton.addEventListener("pointerdown", event => {
+    event.preventDefault();
+    startDucking();
+});
+
+duckButton.addEventListener("pointerup", stopDucking);
+duckButton.addEventListener("pointercancel", stopDucking);
+duckButton.addEventListener("pointerleave", stopDucking);
+
+/* =========================================================
+   PAUSE
+   ========================================================= */
+
+function togglePause() {
+    if (!running) return;
+
+    paused = !paused;
+    pauseButton.textContent = paused ? "RESUME" : "PAUSE";
+
+    if (!paused) {
+        lastTime = performance.now();
+        requestAnimationFrame(gameLoop);
+    }
+}
+
+pauseButton.addEventListener("click", togglePause);
+
+/* =========================================================
+   OBJECT CREATION
+   ========================================================= */
+
+function createObstacle(x) {
+    const obstacle = document.createElement("div");
+    obstacle.className = "obstacle";
+
+    const roll = Math.random();
+
+    if (roll < 0.45) {
+        obstacle.classList.add("cactus");
+    } else if (roll < 0.70) {
+        obstacle.classList.add("rock");
+    } else if (roll < 0.86) {
+        obstacle.classList.add("spikes");
+    } else {
+        obstacle.classList.add("bird");
+    }
+
+    obstacle.dataset.x = x;
+    obstacle.style.left = x + "px";
+
+    game.appendChild(obstacle);
+    objects.push(obstacle);
+}
+
+function createCoin(x) {
+    const coin = document.createElement("div");
+    coin.className = "coin";
+    coin.dataset.x = x;
+    coin.style.left = x + "px";
+
+    game.appendChild(coin);
+    objects.push(coin);
+}
+
+function createPowerup(x) {
+    const power = document.createElement("div");
+    power.className = "powerup";
+
+    if (Math.random() < 0.5) {
+        power.classList.add("shieldPower");
+        power.textContent = "🛡️";
+    } else {
+        power.classList.add("speedPower");
+        power.textContent = "⚡";
+    }
+
+    power.dataset.x = x;
+    power.style.left = x + "px";
+
+    game.appendChild(power);
+    objects.push(power);
+}
+
+/* =========================================================
+   COLLISION
+   ========================================================= */
+
+function collision(a, b) {
+    const r1 = a.getBoundingClientRect();
+    const r2 = b.getBoundingClientRect();
+
+    const padding = 7;
+
+    return !(
+        r1.right - padding < r2.left + padding ||
+        r1.left + padding > r2.right - padding ||
+        r1.bottom - padding < r2.top + padding ||
+        r1.top + padding > r2.bottom - padding
+    );
+}
+
+function removeObject(object) {
+    if (object.parentNode) {
+        object.remove();
+    }
+
+    objects = objects.filter(item => item !== object);
+}
+
+/* =========================================================
+   PLAYER HIT
+   ========================================================= */
+
+function playerHit(obstacle) {
+    if (shieldActive) {
+        shieldActive = false;
+        player.classList.remove("shield");
+        removeObject(obstacle);
+        return;
+    }
+
+    lives = 0;
+    livesText.textContent = lives;
+
+    removeObject(obstacle);
+    gameOver();
+}
+
+/* =========================================================
+   POWERUPS
+   ========================================================= */
+
+function collectPowerup(power) {
+    if (power.classList.contains("shieldPower")) {
+        shieldActive = true;
+        player.classList.add("shield");
+    } else {
+        speedBoost = true;
+        speedBoostTimer = 5;
+    }
+
+    removeObject(power);
+}
+
+/* =========================================================
+   GAME OVER
+   ========================================================= */
+
+function gameOver() {
+    running = false;
+    stopDucking();
+
+    localStorage.setItem("creatorCoins", coins);
+
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("creatorHighScore", highScore);
+        highScoreText.textContent = highScore;
+    }
+
+    updateAchievements();
+    updateCoinUI();
+
+    menu.innerHTML = `
+        <h1>GAME OVER</h1>
+        <p>⭐ Score: ${score}</p>
+        <p>🪙 Coins: ${coins}</p>
+        <p>🏆 Best: ${highScore}</p>
+        <button id="restartButton">PLAY AGAIN</button>
+    `;
+
+    menu.style.display = "flex";
+
+    document.getElementById("restartButton").addEventListener(
+        "click",
+        startGame
+    );
+}
+
+/* =========================================================
+   DAY / NIGHT
+   ========================================================= */
+
+function updateDayNight() {
+    if (Math.floor(score / 500) % 2 === 1) {
+        game.classList.add("night");
+    } else {
+        game.classList.remove("night");
+    }
+}
+
+/* =========================================================
+   GAME LOOP
+   ========================================================= */
+
+function gameLoop(currentTime) {
+    if (!running || paused) return;
+
+    let deltaTime = (currentTime - lastTime) / 1000;
+    lastTime = currentTime;
+
+    deltaTime = Math.min(deltaTime, 0.033);
+
+    /* PLAYER PHYSICS */
+
+    velocityY -= gravity * deltaTime;
+    playerY += velocityY * deltaTime;
+
+    if (playerY < 0) {
+        playerY = 0;
+        velocityY = 0;
+    }
+
+    player.style.transform = `translateY(${-playerY}px)`;
+
+    /* SCORE */
+
+    scoreTimer += deltaTime;
+
+    if (scoreTimer >= 0.1) {
+        score++;
+        scoreTimer = 0;
+
+        scoreText.textContent = score;
+
+        updateMissions();
+        updateAchievements();
+    }
+
+    /* SPEED */
+
+    if (normalSpeed < maximumSpeed) {
+        normalSpeed += acceleration * deltaTime;
+
+        if (normalSpeed > maximumSpeed) {
+            normalSpeed = maximumSpeed;
+        }
+    }
+
+    /* SPEED BOOST */
+
+    if (speedBoost) {
+        speedBoostTimer -= deltaTime;
+
+        if (speedBoostTimer <= 0) {
+            speedBoost = false;
+        }
+    }
+
+    const actualSpeed = speedBoost
+        ? normalSpeed * 1.5
+        : normalSpeed;
+
+    speedDisplay.textContent = Math.round(normalSpeed);
+
+    /* OBSTACLE SPAWNING */
+
+    obstacleDistance -= actualSpeed * deltaTime;
+
+    if (obstacleDistance <= 0) {
+        createObstacle(window.innerWidth + 50);
+
+        const speedBonus = (normalSpeed - 300) * 0.4;
+        const minimum = minimumGap + speedBonus;
+        const maximum = maximumGap + speedBonus;
+
+        obstacleDistance =
+            minimum + Math.random() * (maximum - minimum);
+    }
+
+    /* COIN SPAWNING */
+
+    if (Math.random() < 0.006) {
+        createCoin(window.innerWidth + 50);
+    }
+
+    /* POWERUP SPAWNING */
+
+    if (Math.random() < 0.001) {
+        createPowerup(window.innerWidth + 50);
+    }
+
+    /* MOVE OBJECTS AND CHECK COLLISIONS */
+
+    objects.slice().forEach(object => {
+        let x = parseFloat(object.dataset.x);
+
+        x -= actualSpeed * deltaTime;
+
+        object.dataset.x = x;
+        object.style.left = x + "px";
+
+        if (collision(player, object)) {
+            if (object.classList.contains("coin")) {
+                coins++;
+                coinsCollectedThisRun++;
+
+                updateCoinUI();
+                localStorage.setItem("creatorCoins", coins);
+
+                updateMissions();
+                updateAchievements();
+
+                removeObject(object);
+            } else if (object.classList.contains("powerup")) {
+                collectPowerup(object);
+            } else if (object.classList.contains("obstacle")) {
+                playerHit(object);
+            }
+        }
+
+        if (x < -150) {
+            removeObject(object);
+        }
+    });
+
+    updateDayNight();
+
+    requestAnimationFrame(gameLoop);
+}
+
+/* =========================================================
+   INITIAL ACHIEVEMENT / MISSION UPDATE
+   ========================================================= */
+
+renderMissions();
+updateAchievements();
+updateCoinUI();
+applyCharacter();
+applyWorld();
+</script>
+</body>
+</html>
