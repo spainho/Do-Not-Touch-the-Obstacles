@@ -2,6 +2,10 @@
 
 A simple browser-based endless runner game where you run, jump, duck, collect coins, avoid obstacles, complete missions, unlock achievements, and explore different worlds.
 
+## ▶️ Play the Game
+
+**[Play Do-Not-Touch-the-Obstacles](https://spainho.github.io/Do-Not-Touch-the-Obstacles/)**
+
 ## 🚀 Features
 
 - 🏃 Endless runner gameplay
@@ -106,10 +110,6 @@ This game is built with:
 - Browser `localStorage`
 
 The game is contained in a single `index.html` file, so it can be hosted easily with GitHub Pages.
-
-## ▶️ Play the Game
-
-**[Play Do-Not-Touch-the-Obstacles](https://spainho.github.io/Do-not-touch-the-obstacles/)**
 
 ## 🌐 GitHub Pages
 
